@@ -1,8 +1,10 @@
 package application.controllers;
 
 import application.entities.Message;
+import application.entities.User;
 import application.repos.MessageRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,10 +31,12 @@ public class MainController {
     }
 
     @PostMapping("/main")
-    public String add(@RequestParam String text, @RequestParam String tag, Map<String, Object> model) {
+    public String add(@AuthenticationPrincipal User user,
+                      @RequestParam String text,
+                      @RequestParam String tag, Map<String, Object> model) {
         // аннотация @RequestParam берет значения из <form>, если это post запрос, а если get, то из url
 
-        Message message = new Message(text, tag);
+        Message message = new Message(text, tag, user);
         repo.save(message);
 
         Iterable<Message> messages = repo.findAll();
@@ -46,8 +50,7 @@ public class MainController {
         Iterable<Message> messages;
         if (filter != null && !filter.isEmpty()) {
             messages = repo.findByTag(filter);
-        }
-        else {
+        } else {
             messages = repo.findAll();
         }
         model.put("messages", messages);
